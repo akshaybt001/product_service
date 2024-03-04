@@ -106,6 +106,43 @@ func (product *ProductService) GetAllProducts(em *pb.NoParam,srv pb.ProductServi
 	return nil
 }
 
+func (product *ProductService) UpdateStock(ctx context.Context,req *pb.UpdateStockRequest)(*pb.ProductResponse,error){
+	
+	span:=Tracer.StartSpan("update quantity of product")
+	defer span.Finish()
+
+	var res *pb.ProductResponse
+
+	if req.Increase{
+
+		result,err:=product.Adapter.IncrementStock(uint(req.Id),int(req.Quantity))
+		if err!=nil{
+			return nil,err
+		}
+
+		res=&pb.ProductResponse{
+			Id: uint32(result.Id),
+			Name: result.Name,
+			Price: int32(result.Price),
+			Quantity: int32(result.Quantity),
+		}
+
+	} else{
+		result,err:=product.Adapter.DecrementStock(uint(req.Id),int(req.Quantity))
+		if err!=nil{
+			return nil,err
+		}
+		res=&pb.ProductResponse{
+			Id: uint32(result.Id),
+			Name: result.Name,
+			Price: int32(result.Price),
+			Quantity: int32(result.Quantity),
+		}
+	}
+	return res ,nil
+
+}
+
 
 type HealthChecker struct {
 	grpc_health_v1.UnimplementedHealthServer

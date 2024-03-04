@@ -6,12 +6,10 @@ import (
 	"log"
 	"net"
 	"os"
-	"time"
 
 	"github.com/akshaybt001/product_service/db"
 	"github.com/akshaybt001/product_service/initializer"
 	"github.com/akshaybt001/product_service/service"
-	servicediscoveryconsul "github.com/akshaybt001/product_service/servicediscovery_consul"
 	"github.com/akshaybt001/proto_files/pb"
 	"github.com/joho/godotenv"
 	"github.com/opentracing/opentracing-go"
@@ -45,13 +43,6 @@ func main() {
 	}
 
 	log.Printf("Product server is listening on port 8080")
-
-	go func() {
-		time.Sleep(5 * time.Second)
-
-		servicediscoveryconsul.RegisterService()
-
-	}()
 
 	healthService := &service.HealthChecker{}
 

@@ -11,6 +11,8 @@ type ProductAdapter struct {
 	DB *gorm.DB
 }
 
+
+
 func NewProductAdapter(db *gorm.DB) *ProductAdapter {
 	return &ProductAdapter{
 		DB: db,
@@ -42,4 +44,41 @@ func (product *ProductAdapter) GetAllProducts() ([]entities.Products, error) {
 		return nil, fmt.Errorf("error while getting products : %v", err)
 	}
 	return res, nil
+}
+
+
+func (product *ProductAdapter) IncrementStock(id uint, stock int) (entities.Products, error) {
+	var res entities.Products
+
+	query:="UPDATE products SET quantity = quantity + $1 WHERE id = $2"
+
+	return res,product.DB.Raw(query,stock,id).Scan(&res).Error
+}
+
+func (product *ProductAdapter) DecrementStock(id uint, stock int) (entities.Products, error) {
+	var res entities.Products
+
+	query:="UPDATE products SET quantity = quantity - $1 WHERE id = $2"
+
+	tx := product.DB.Begin()
+
+	defer func ()  {
+		if r:=recover();r!=nil{
+			tx.Rollback()
+		}
+	}()
+	if err:=tx.Raw(query,stock,id).Scan(&res).Error;err!=nil{
+		tx.Rollback()
+		return res,err
+	}
+
+	if res.Quantity<0{
+		tx.Rollback()
+		return res, fmt.Errorf("quantity cannot be negative")
+	}
+
+	if err:=tx.Commit().Error;err!=nil{
+		return res,err
+	}
+	return res ,nil
 }
