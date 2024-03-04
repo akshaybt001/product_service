@@ -80,6 +80,5 @@ func initTracer() (tracer opentracing.Tracer, closer io.Closer) {
 		fmt.Println(err.Error())
 	}
 
-	fmt.Println("updated")
 	return
 }
